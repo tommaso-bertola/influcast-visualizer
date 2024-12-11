@@ -27,6 +27,13 @@ labels_order <- c(
 )
 
 
+all_data <- all_data %>%
+    filter(
+        file == "2024_48.csv",
+        luogo == "IT",
+        target == "ILI"
+    )
+
 incidence <- read.csv("/Users/tommasobertola/Git/Influcast/sorveglianza/ILI/2024-2025/latest/italia-latest-ILI.csv") %>%
     mutate(
         year_week = paste0(anno, "-", settimana),
@@ -291,20 +298,26 @@ ensemble_comuni <- ggplot() +
     ) +
     geom_point(
         data = incidence,
-        mapping = aes(x = year_week, y = incidenza, color = " Data"),
+        mapping = aes(x = year_week, y = incidenza, color = "Data"),
         size = 3
     ) +
     geom_line(
         data = incidence,
-        mapping = aes(x = year_week, y = incidenza, group = target, color = " Data"),
+        mapping = aes(x = year_week, y = incidenza, group = target, color = "Data"),
         size = 1
     ) +
     annotate("text",
-        x = "2024-45", y = 0, color = "black",
-        size = 5, label = "Past\nFuture", angle = 90,
-        vjust = 0.5, hjust = 0, fontface = "italic"
+        x = last_incidence$year_week, y = 15, color = "black",
+        size = 5, label = "Last available data point\n", angle = 90,
+        vjust = 0.5, hjust = 1, fontface = "italic"
     ) +
-    geom_vline(xintercept = "2024-45", linetype = "dashed", color = "black") +
+    annotate("text",
+        x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 15, color = "black",
+        size = 5, label = paste0("Today ", Sys.Date(), "\n"), angle = 90,
+        vjust = 0.5, hjust = 1, fontface = "italic"
+    ) +
+    geom_vline(xintercept = last_incidence$year_week, linetype = "dashed", color = "black") +
+    geom_vline(xintercept = labels_order[which(labels_order == last_incidence$year_week) + 2], linetype = "dotted", color = "black") +
     geom_hline(
         yintercept = 5, linetype = "dotted",
         color = "black", alpha = 0.5
@@ -331,7 +344,7 @@ ensemble_comuni <- ggplot() +
         legend.position = c(0.99, 0.01),
         legend.justification = c(1, 0),
         plot.caption = element_text(hjust = 0),
-        axis.text.x = element_text(size = 11),
+        axis.text.x = element_text(size = 11, angle = 15, hjust = 1),
         axis.text.y = element_text(size = 11),
         legend.spacing.y = unit(-0.2, "cm")
     )
@@ -343,11 +356,15 @@ all_models <- ggplot(remaining) +
     geom_ribbon(aes(x = year_week, ymin = `0.25`, ymax = `0.75`, group = folder, fill = "50%"), alpha = 1) +
     geom_point(data = incidence, aes(x = year_week, y = incidenza), color = "black", size = 2) +
     geom_line(data = incidence, aes(x = year_week, y = incidenza, group = target), color = "black", size = 1) +
-    geom_vline(xintercept = "2024-45", linetype = "dashed", color = "black") +
+    geom_vline(xintercept = "2024-48", linetype = "dashed", color = "black") +
     geom_hline(yintercept = 5, linetype = "dotted", color = "black", alpha = 0.5) +
     geom_hline(yintercept = 15, linetype = "dotted", color = "black", alpha = 0.5) +
     scale_fill_manual(values = paletteer_d("MoMAColors::Flash")[c(2, 4, 5)]) +
-    scale_x_discrete(labels = function(labels) substr(labels, 6, nchar(labels))) +
+    scale_x_discrete(labels = function(labels) {
+        labels <- substr(labels, 6, nchar(labels))
+        labels[seq_along(labels) %% 3 != 1] <- ""
+        labels
+    }) +
     coord_cartesian(ylim = c(0, 15), expand = TRUE) +
     facet_wrap(~folder) +
     labs(
@@ -367,7 +384,7 @@ all_models <- ggplot(remaining) +
 ggarrange(ensemble_comuni, all_models, ncol = 2, align = "h") +
     plot_annotation(
         title = paste0(
-            "Predicted weekly ILI incidence for week ",
+            "Weekly ILI incidence prediction with data up to week ",
             last_incidence$year_week
         ),
         subtitle = "Cases per 1000 individuals",
@@ -382,3 +399,18 @@ ggarrange(ensemble_comuni, all_models, ncol = 2, align = "h") +
 ggsave(paste0("previsioni/plot_", last_incidence$year_week, ".png"),
     width = 13, height = 8, dpi = 300
 )
+
+
+# ensemble_comuni + labs(x = "Epiweek", y = "ILI inc. per 1000 indiv. in Italy") +
+#     theme(
+#         axis.text.x = element_text(size = 13),
+#         axis.text.y = element_text(size = 13),
+#         axis.title.x = element_text(size = 15),
+#         axis.title.y = element_text(size = 15),
+#         legend.text = element_text(size = 13)
+#     ) -> ensemble_comuni_to_print
+
+
+# df <- readRDS("pot_critical.rds")
+# ggarrange(df, ensemble_comuni_to_print, labels = c("A", "B"), widths = c(1.5, 1), align = "hv")
+# ggsave("output.png", width = 18, height = 5, dpi = 300, scale = 0.9)
