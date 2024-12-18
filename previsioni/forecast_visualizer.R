@@ -29,7 +29,7 @@ labels_order <- c(
 
 all_data <- all_data %>%
     filter(
-        file == "2024_48.csv",
+        file == "2024_49.csv",
         luogo == "IT",
         target == "ILI"
     )
@@ -68,82 +68,45 @@ models_order <- c(
 )
 
 
-ensemble_comunipd <- all_data %>%
+all_data_reshaped <- all_data %>%
     filter(
         anno != "2023",
         !is.na(target),
-        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5),
-        folder %in% c(
-            "Influcast-Ensemble",
-            "comunipd-mobnetSI2R"
-        )
+        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5) # ,
     ) %>%
     mutate(
         week = settimana + orizzonte,
         settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
             ifelse(week == 0, 52, week)
         )),
-        anno2 = ifelse(week == 0, anno - 1, anno),
+        anno2 = ifelse(week > 52, anno + 1, anno),
         year_week = paste0(anno2, "-", settimana2),
         id_valore = factor(id_valore)
     ) %>%
     pivot_wider(names_from = id_valore, values_from = valore)
 
-ensemble <- all_data %>%
+ensemble_comunipd <- all_data_reshaped %>% filter(
+    folder %in% c(
+        "Influcast-Ensemble",
+        "comunipd-mobnetSI2R"
+    )
+)
+
+ensemble <- all_data_reshaped %>%
     filter(
-        anno != "2023",
-        !is.na(target),
-        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5),
         folder == "Influcast-Ensemble"
-    ) %>%
-    mutate(
-        week = settimana + orizzonte,
-        settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
-            ifelse(week == 0, 52, week)
-        )),
-        anno2 = ifelse(week == 0, anno - 1, anno),
-        year_week = paste0(anno2, "-", settimana2),
-        id_valore = factor(id_valore)
-    ) %>%
-    pivot_wider(names_from = id_valore, values_from = valore)
+    )
 
-comunipd <- all_data %>%
-    filter(
-        anno != "2023",
-        !is.na(target),
-        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5),
-        folder == "comunipd-mobnetSI2R"
-    ) %>%
-    mutate(
-        week = settimana + orizzonte,
-        settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
-            ifelse(week == 0, 52, week)
-        )),
-        anno2 = ifelse(week == 0, anno - 1, anno),
-        year_week = paste0(anno2, "-", settimana2),
-        id_valore = factor(id_valore)
-    ) %>%
-    pivot_wider(names_from = id_valore, values_from = valore)
+comunipd <- all_data_reshaped %>% filter(
+    folder %in% c(
+        "comunipd-mobnetSI2R"
+    )
+)
 
-baseline <- all_data %>%
+baseline <- all_data_reshaped %>%
     filter(
-        anno != "2023",
-        !is.na(target),
-        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5),
         folder == "Influcast-quantileBaseline"
     ) %>%
-    mutate(
-        week = settimana + orizzonte,
-        settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
-            ifelse(week == 0, 52, week)
-        )),
-        anno2 = ifelse(week == 0, anno - 1, anno),
-        year_week = paste0(anno2, "-", settimana2),
-        id_valore = factor(id_valore),
-        folder = "Influcast-Baseline"
-    ) %>%
-    select(-settimana2, -anno2) %>%
-    pivot_wider(names_from = id_valore, values_from = valore) %>%
     select(year_week, `0.025`, `0.05`, `0.25`, `0.75`, `0.95`, `0.975`, `0.5`, folder) %>%
     rbind(
         data.frame(
@@ -155,33 +118,20 @@ baseline <- all_data %>%
             `0.95` = last_incidence$incidenza,
             `0.975` = last_incidence$incidenza,
             `0.5` = last_incidence$incidenza,
-            folder = "Influcast-Baseline",
+            folder = "Influcast-quantileBaseline",
             check.names = FALSE
         )
     )
 
-remaining <- all_data %>%
+remaining <- all_data_reshaped %>%
     filter(
-        anno != "2023",
-        !is.na(target),
-        id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5),
         !folder %in% c(
             "Influcast-Ensemble",
             "Influcast-quantileBaseline",
             "comunipd-mobnetSI2R",
             "TestTeam-TestModel"
         )
-    ) %>%
-    mutate(
-        week = settimana + orizzonte,
-        settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
-            ifelse(week == 0, 52, week)
-        )),
-        anno2 = ifelse(week == 0, anno - 1, anno),
-        year_week = paste0(anno2, "-", settimana2),
-        id_valore = factor(id_valore)
-    ) %>%
-    pivot_wider(names_from = id_valore, values_from = valore)
+    )
 
 
 ensemble_comuni <- ggplot() +
