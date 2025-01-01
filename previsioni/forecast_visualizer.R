@@ -6,6 +6,7 @@ library(paletteer)
 library(ggtext)
 library(patchwork)
 library(ggpubr)
+library(RColorBrewer)
 
 dirs <- list.dirs("/Users/tommasobertola/Git/Influcast/previsioni",
     recursive = FALSE
@@ -26,10 +27,9 @@ labels_order <- c(
     paste0("2025-", sprintf("%02d", c(1:20)))
 )
 
-
 all_data <- all_data %>%
     filter(
-        file == "2024_49.csv",
+        file == "2024_51.csv",
         luogo == "IT",
         target == "ILI"
     )
@@ -47,6 +47,54 @@ last_incidence <- incidence %>%
     arrange(desc(orizzonte)) %>%
     slice(1) %>%
     select(anno, settimana, year_week, incidenza)
+
+# past seasons
+years <- c(
+    "2003-2004", "2004-2005",
+    "2005-2006", "2006-2007",
+    "2007-2008", "2008-2009",
+    "2009-2010", "2010-2011",
+    "2011-2012", "2012-2013",
+    "2013-2014", "2014-2015",
+    "2015-2016", "2016-2017",
+    "2017-2018", "2018-2019",
+    "2019-2020", "2020-2021",
+    "2021-2022", "2022-2023",
+    "2023-2024"
+)
+special_years <- c("2009-2010", "2020-2021", "2021-2022", "2022-2023", "2023-2024")
+
+
+incidence_past_seasons <- data.frame()
+for (y in years) {
+    base <- strsplit(y, "-")[[1]][2]
+    file_read <- paste0("/Users/tommasobertola/Git/Influcast/sorveglianza/ILI/", y, "/italia-", base, "_15-ILI.csv")
+    incidence_past_seasons <- rbind(incidence_past_seasons, read.csv(file_read) %>%
+        mutate(
+            week = sprintf("%02d", settimana),
+            year_week = paste0(anno, "-", sprintf("%02d", settimana)),
+            orizzonte = factor(year_week,
+                levels = labels_order,
+                labels = labels_order
+            ),
+            epi_year = y
+        ))
+}
+incidence_past_seasons$epi_year <- factor(incidence_past_seasons$epi_year, levels = years)
+
+palette_past_seasons <- colorRampPalette(brewer.pal(9, "Blues")[5:9])(length(years))
+
+clean_db <- incidence_past_seasons %>%
+    filter(week != "53") %>%
+    filter(!epi_year %in% special_years) %>%
+    mutate(week = ifelse(week < 40, paste0("2025-", week), paste0("2024-", week))) %>%
+    mutate(year_week_2 = factor(week, levels = c("2024-39", "2024-40", "2024-41", unique(week)), labels = c("2024-39", "2024-40", "2024-41", unique(week))))
+
+clean_db_special <- incidence_past_seasons %>%
+    filter(week != "53") %>%
+    filter(epi_year %in% special_years) %>%
+    mutate(week = ifelse(week < 40, paste0("2025-", week), paste0("2024-", week))) %>%
+    mutate(year_week_2 = factor(week, levels = c("2024-39", "2024-40", "2024-41", unique(week)), labels = c("2024-39", "2024-40", "2024-41", unique(week))))
 
 
 models_order <- c(
@@ -133,172 +181,86 @@ remaining <- all_data_reshaped %>%
         )
     )
 
-
 ensemble_comuni <- ggplot() +
-    geom_ribbon(
-        data = comunipd,
-        mapping = aes(x = year_week, ymin = `0.025`, ymax = `0.975`, group = folder, fill = folder),
-        alpha = 0.2
-    ) +
-    geom_ribbon(
-        data = comunipd,
-        mapping = aes(x = year_week, ymin = `0.05`, ymax = `0.95`, group = folder, fill = folder),
-        alpha = 0.4
-    ) +
-    geom_ribbon(
-        data = comunipd,
-        mapping = aes(x = year_week, ymin = `0.25`, ymax = `0.75`, group = folder, fill = folder),
-        alpha = 1
-    ) +
-    geom_line(
-        data = ensemble, mapping = aes(
-            x = year_week, y = `0.25`, group = folder,
-            color = folder
-        ),
-        size = 1,
-        linetype = "solid"
-    ) +
-    geom_line(
-        data = ensemble,
-        mapping = aes(
-            x = year_week, y = `0.75`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "solid"
-    ) +
-    geom_line(
-        data = ensemble,
-        mapping = aes(
-            x = year_week, y = `0.95`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dashed"
-    ) +
-    geom_line(
-        data = ensemble,
-        mapping = aes(
-            x = year_week, y = `0.05`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dashed"
-    ) +
-    geom_line(
-        data = ensemble,
-        mapping = aes(
-            x = year_week, y = `0.025`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dotted"
-    ) +
-    geom_line(
-        data = ensemble,
-        mapping = aes(
-            x = year_week, y = `0.975`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dotted"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.25`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "solid"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.75`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "solid"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.95`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dashed"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.05`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dashed"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.025`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dotted"
-    ) +
-    geom_line(
-        data = baseline,
-        mapping = aes(
-            x = year_week, y = `0.975`, group = folder, color = folder
-        ),
-        size = 1,
-        linetype = "dotted"
-    ) +
-    geom_point(
-        data = incidence,
-        mapping = aes(x = year_week, y = incidenza, color = "Data"),
-        size = 3
-    ) +
-    geom_line(
-        data = incidence,
-        mapping = aes(x = year_week, y = incidenza, group = target, color = "Data"),
-        size = 1
-    ) +
-    annotate("text",
-        x = last_incidence$year_week, y = 15, color = "black",
-        size = 5, label = "Last available data point\n", angle = 90,
-        vjust = 0.5, hjust = 1, fontface = "italic"
-    ) +
-    annotate("text",
-        x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 15, color = "black",
-        size = 5, label = paste0("Today ", Sys.Date(), "\n"), angle = 90,
-        vjust = 0.5, hjust = 1, fontface = "italic"
-    ) +
+    geom_ribbon(data = comunipd, mapping = aes(x = year_week, ymin = `0.025`, ymax = `0.975`, group = folder, fill = folder), alpha = 0.2) +
+    geom_ribbon(data = comunipd, mapping = aes(x = year_week, ymin = `0.05`, ymax = `0.95`, group = folder, fill = folder), alpha = 0.4) +
+    geom_ribbon(data = comunipd, mapping = aes(x = year_week, ymin = `0.25`, ymax = `0.75`, group = folder, fill = folder), alpha = 1) +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.25`, group = folder, color = folder), size = 1, linetype = "solid") +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.75`, group = folder, color = folder), size = 1, linetype = "solid") +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.95`, group = folder, color = folder), size = 1, linetype = "dashed") +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.05`, group = folder, color = folder), size = 1, linetype = "dashed") +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.025`, group = folder, color = folder), size = 1, linetype = "dotted") +
+    geom_line(data = ensemble, mapping = aes(x = year_week, y = `0.975`, group = folder, color = folder), size = 1, linetype = "dotted") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.25`, group = folder, color = folder), size = 1, linetype = "solid") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.75`, group = folder, color = folder), size = 1, linetype = "solid") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.95`, group = folder, color = folder), size = 1, linetype = "dashed") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.05`, group = folder, color = folder), size = 1, linetype = "dashed") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.025`, group = folder, color = folder), size = 1, linetype = "dotted") +
+    geom_line(data = baseline, mapping = aes(x = year_week, y = `0.975`, group = folder, color = folder), size = 1, linetype = "dotted") +
+    geom_point(data = incidence, mapping = aes(x = year_week, y = incidenza, color = "Data"), size = 3) +
+    geom_line(data = incidence, mapping = aes(x = year_week, y = incidenza, group = target, color = "Data"), size = 1) +
     geom_vline(xintercept = last_incidence$year_week, linetype = "dashed", color = "black") +
     geom_vline(xintercept = labels_order[which(labels_order == last_incidence$year_week) + 2], linetype = "dotted", color = "black") +
-    geom_hline(
-        yintercept = 5, linetype = "dotted",
-        color = "black", alpha = 0.5
-    ) +
-    geom_hline(
-        yintercept = 15, linetype = "dotted",
-        color = "black", alpha = 0.5
-    ) +
+    geom_hline(yintercept = 5, linetype = "dotted", color = "black", alpha = 0.5) +
+    geom_hline(yintercept = 15, linetype = "dotted", color = "black", alpha = 0.5) +
     scale_fill_paletteer_d("ggsci::alternating_igv", direction = -1) +
-    scale_color_manual(
-        values = paletteer_d("nbapalettes::knicks_retro")[c(3, 1, 2)],
-        aesthetics = "color"
-    ) +
-    coord_cartesian(ylim = c(0, 15), expand = TRUE) +
+    coord_cartesian(ylim = c(0, 20), expand = TRUE) +
     labs(
-        x = "Week",
+        x = "Epiweek",
         y = NULL,
         fill = NULL,
-        color = NULL
+        color = NULL,
+        caption = "Blue curves represent past seasonal epidemic trends.\nRed curves represent epidemic trends outliers of 2009-2010 and 2020-2024 seasons"
     ) +
     theme_bw() +
-    theme(
-        strip.text = element_markdown(size = 10),
-        legend.position = c(0.99, 0.01),
-        legend.justification = c(1, 0),
-        plot.caption = element_text(hjust = 0),
-        axis.text.x = element_text(size = 11, angle = 15, hjust = 1),
-        axis.text.y = element_text(size = 11),
-        legend.spacing.y = unit(-0.2, "cm")
-    )
+    theme(strip.text = element_markdown(size = 10), legend.position = c(0.99, 0.7), legend.justification = c(1, 0), plot.caption = element_text(hjust = 0), axis.text.x = element_text(size = 11, angle = 30, hjust = 1), axis.text.y = element_text(size = 11), legend.spacing.y = unit(-0.2, "cm"))
 
+for (y in seq_along(years)) {
+    yea <- years[y]
+    df <- rbind(clean_db_special, clean_db) %>% filter(epi_year == yea)
+    if (yea %in% special_years) {
+        ensemble_comuni <- ensemble_comuni +
+            geom_point(
+                data = df,
+                mapping = aes(x = year_week_2, y = incidenza, col = "Special years"),
+                alpha = 0.2
+            ) +
+            geom_line(
+                data = df,
+                mapping = aes(x = year_week_2, y = incidenza, group = 1, col = "Special years"),
+                alpha = 0.2, size = 1
+            )
+    } else {
+        color <- palette_past_seasons[y]
+        ensemble_comuni <- ensemble_comuni +
+            geom_point(
+                data = df,
+                mapping = aes(x = year_week_2, y = incidenza), col = color,
+                alpha = 0.2, size = 1, show.legend = FALSE
+            ) +
+            geom_line(
+                data = df,
+                mapping = aes(x = year_week_2, y = incidenza, group = 1), col = color,
+                alpha = 0.2, size = 1, show.legend = FALSE
+            )
+    }
+}
+
+ensemble_comuni <- ensemble_comuni +
+    geom_line(aes(x = c("2024-42", "2024-43"), y = c(-10, -20), group = 1, color = "Normal years"), alpha = 0.6, size = 1) +
+    geom_point(aes(x = factor("2024-42"), y = -10, color = "Normal years")) +
+    scale_color_manual(
+        values = c(paletteer_d("nbapalettes::knicks_retro")[c(3, 1, 2)], palette_past_seasons[1], "red"),
+    ) + annotate("label",
+        x = last_incidence$year_week, y = 20, color = "black",
+        size = 5, label = "Last available data point", angle = 90,
+        vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+    ) +
+    annotate("label",
+        x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 20, color = "black",
+        size = 5, label = paste0("Today ", Sys.Date()), angle = 90,
+        vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+    )
 
 all_models <- ggplot(remaining) +
     geom_ribbon(aes(x = year_week, ymin = `0.025`, ymax = `0.975`, group = folder, fill = "95%"), alpha = 1) +
@@ -331,7 +293,7 @@ all_models <- ggplot(remaining) +
     )
 
 
-ggarrange(ensemble_comuni, all_models, ncol = 2, align = "h") +
+ggarrange(ensemble_comuni, all_models, ncol = 2, align = "hv") +
     plot_annotation(
         title = paste0(
             "Weekly ILI incidence prediction with data up to week ",
