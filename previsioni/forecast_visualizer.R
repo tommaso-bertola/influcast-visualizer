@@ -27,23 +27,28 @@ labels_order <- c(
     paste0("2025-", sprintf("%02d", c(1:20)))
 )
 
+limit <- "2025_03"
+limit_dash <- gsub("_", "-", limit)
+
 all_data <- all_data %>%
     filter(
-        file == "2024_51.csv",
+        file == paste0(limit, ".csv"),
         luogo == "IT",
         target == "ILI"
     )
 
 incidence <- read.csv("/Users/tommasobertola/Git/Influcast/sorveglianza/ILI/2024-2025/latest/italia-latest-ILI.csv") %>%
     mutate(
-        year_week = paste0(anno, "-", settimana),
+        year_week = paste0(anno, "-", sprintf("%02d", settimana)),
         orizzonte = factor(year_week,
             levels = labels_order,
             labels = labels_order
         )
-    )
+    ) %>%
+    filter(year_week %in% labels_order[1:which(labels_order == limit_dash)])
 
 last_incidence <- incidence %>%
+    filter(orizzonte == gsub("_", "-", limit)) %>%
     arrange(desc(orizzonte)) %>%
     slice(1) %>%
     select(anno, settimana, year_week, incidenza)
@@ -131,6 +136,7 @@ all_data_reshaped <- all_data %>%
         year_week = paste0(anno2, "-", settimana2),
         id_valore = factor(id_valore)
     ) %>%
+    filter(anno2 != "2026") %>%
     pivot_wider(names_from = id_valore, values_from = valore)
 
 ensemble_comunipd <- all_data_reshaped %>% filter(
@@ -250,17 +256,28 @@ ensemble_comuni <- ensemble_comuni +
     geom_line(aes(x = c("2024-42", "2024-43"), y = c(-10, -20), group = 1, color = "Normal years"), alpha = 0.6, size = 1) +
     geom_point(aes(x = factor("2024-42"), y = -10, color = "Normal years")) +
     scale_color_manual(
-        values = c(paletteer_d("nbapalettes::knicks_retro")[c(3, 1, 2)], palette_past_seasons[1], "red"),
-    ) + annotate("label",
-        x = last_incidence$year_week, y = 20, color = "black",
-        size = 5, label = "Last available data point", angle = 90,
-        vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
-    ) +
-    annotate("label",
-        x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 20, color = "black",
-        size = 5, label = paste0("Today ", Sys.Date()), angle = 90,
-        vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+        values = c(paletteer_d("nbapalettes::knicks_retro")[c(3, 1, 2)], palette_past_seasons[1], "red")
     )
+# ) + annotate("label",
+#     x = last_incidence$year_week, y = 20, color = "black",
+#     size = 5, label = "Last available data point", angle = 90,
+#     vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+# ) +
+# annotate("label",
+#     x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 20, color = "black",
+#     size = 5, label = paste0("Today ", Sys.Date()), angle = 90,
+#     vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+# )
+# ) + annotate("label",
+#     x = last_incidence$year_week, y = 20, color = "black",
+#     size = 5, label = "", angle = 90,
+#     vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+# ) +
+# annotate("label",
+#     x = labels_order[which(labels_order == last_incidence$year_week) + 2], y = 20, color = "black",
+#     size = 5, label = "", angle = 90,
+#     vjust = 0, hjust = 1, fontface = "italic", alpha = 0.6
+# )
 
 all_models <- ggplot(remaining) +
     geom_ribbon(aes(x = year_week, ymin = `0.025`, ymax = `0.975`, group = folder, fill = "95%"), alpha = 1) +
