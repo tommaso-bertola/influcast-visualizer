@@ -161,4 +161,4 @@ peak_week <- max_inc_2 %>% ggplot(aes(x = week, y = epi_year)) +
 
 
 ggarrange(graph_obj, peak_week, ncol = 1, align = "v", heights = c(1, 0.7))
-ggsave("plot_maxima.png", width = 10, height = 10, dpi = 300)
+ggsave("previsioni/plot_maxima.png", width = 10, height = 10, dpi = 300)

@@ -324,6 +324,9 @@ ggarrange(ensemble_comuni, all_models, ncol = 2, align = "hv") +
 ggsave(paste0("previsioni/plot_", last_incidence$year_week, ".png"),
     width = 13, height = 8, dpi = 300
 )
+ggsave(paste0("previsioni/plot_latest.png"),
+    width = 13, height = 8, dpi = 300
+)
 
 
 # ensemble_comuni + labs(x = "Epiweek", y = "ILI inc. per 1000 indiv. in Italy") +
