@@ -128,15 +128,11 @@ all_data_reshaped <- all_data %>%
         id_valore %in% c(0.025, 0.05, 0.25, 0.75, 0.95, 0.975, 0.5) # ,
     ) %>%
     mutate(
-        week = settimana + orizzonte,
-        settimana2 = sprintf("%02d", ifelse(week > 52, week - 52,
-            ifelse(week == 0, 52, week)
-        )),
-        anno2 = ifelse(week > 52, anno + 1, anno),
-        year_week = paste0(anno2, "-", settimana2),
+        tmp_year_week = paste0(anno, "-", sprintf("%02d", settimana)),
+        index = match(tmp_year_week, labels_order),
+        year_week = labels_order[index + orizzonte],
         id_valore = factor(id_valore)
     ) %>%
-    filter(anno2 != "2026") %>%
     pivot_wider(names_from = id_valore, values_from = valore)
 
 ensemble_comunipd <- all_data_reshaped %>% filter(
