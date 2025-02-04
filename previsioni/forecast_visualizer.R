@@ -294,7 +294,7 @@ all_models <- ggplot(remaining) +
         labels[seq_along(labels) %% 3 != 1] <- ""
         labels
     }) +
-    coord_cartesian(ylim = c(0, 15), expand = TRUE) +
+    coord_cartesian(ylim = c(0, 20), expand = TRUE) +
     facet_wrap(~folder) +
     labs(
         x = "Week",
@@ -317,7 +317,7 @@ ggarrange(ensemble_comuni, all_models, ncol = 2, align = "hv") +
             last_incidence$year_week
         ),
         subtitle = "Cases per 1000 individuals",
-        caption = "Different color shades respectively show 50%, 90%, and 95% confidence intervals\nData source: influcast.org",
+        caption = "Different color shades respectively show 50%, 90%, and 95% confidence intervals\nData source: influcast.org, elaborated on CloudVeneto infrastructure",
         theme = theme(
             plot.title = element_text(hjust = 0.5, size = 15, face = "bold"),
             plot.subtitle = element_text(hjust = 0.5, size = 13),
