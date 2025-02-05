@@ -27,7 +27,7 @@ labels_order <- c(
     paste0("2025-", sprintf("%02d", c(1:20)))
 )
 
-limit <- "2025_03"
+limit <- "2025_04"
 limit_dash <- gsub("_", "-", limit)
 
 all_data <- all_data %>%
@@ -206,7 +206,7 @@ ensemble_comuni <- ggplot() +
     geom_hline(yintercept = 5, linetype = "dotted", color = "black", alpha = 0.5) +
     geom_hline(yintercept = 15, linetype = "dotted", color = "black", alpha = 0.5) +
     scale_fill_paletteer_d("ggsci::alternating_igv", direction = -1) +
-    coord_cartesian(ylim = c(0, 20), expand = TRUE) +
+    coord_cartesian(ylim = c(0, 25), expand = TRUE) +
     labs(
         x = "Epiweek",
         y = NULL,
@@ -215,7 +215,7 @@ ensemble_comuni <- ggplot() +
         caption = "Blue curves represent past seasonal epidemic trends.\nRed curves represent epidemic trends outliers of 2009-2010 and 2020-2024 seasons"
     ) +
     theme_bw() +
-    theme(strip.text = element_markdown(size = 10), legend.position = c(0.99, 0.7), legend.justification = c(1, 0), plot.caption = element_text(hjust = 0), axis.text.x = element_text(size = 11, angle = 30, hjust = 1), axis.text.y = element_text(size = 11), legend.spacing.y = unit(-0.2, "cm"))
+    theme(strip.text = element_markdown(size = 10), legend.position = c(0.01, 0.7), legend.justification = c(0, 0), plot.caption = element_text(hjust = 0), axis.text.x = element_text(size = 11, angle = 30, hjust = 1), axis.text.y = element_text(size = 11), legend.spacing.y = unit(-0.2, "cm"))
 
 for (y in seq_along(years)) {
     yea <- years[y]
@@ -290,7 +290,7 @@ all_models <- ggplot(remaining) +
         labels[seq_along(labels) %% 3 != 1] <- ""
         labels
     }) +
-    coord_cartesian(ylim = c(0, 20), expand = TRUE) +
+    coord_cartesian(ylim = c(0, 25), expand = TRUE) +
     facet_wrap(~folder) +
     labs(
         x = "Week",
