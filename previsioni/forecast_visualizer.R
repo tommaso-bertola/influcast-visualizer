@@ -27,7 +27,7 @@ labels_order <- c(
     paste0("2025-", sprintf("%02d", c(1:20)))
 )
 
-limit <- "2025_08"
+limit <- "2025_09"
 limit_dash <- gsub("_", "-", limit)
 
 all_data <- all_data %>%
