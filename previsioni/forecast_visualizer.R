@@ -27,7 +27,7 @@ labels_order <- c(
     paste0("2025-", sprintf("%02d", c(1:20)))
 )
 
-limit <- "2025_09"
+limit <- "2025_10"
 limit_dash <- gsub("_", "-", limit)
 
 all_data <- all_data %>%
@@ -133,7 +133,9 @@ all_data_reshaped <- all_data %>%
         year_week = labels_order[index + orizzonte],
         id_valore = factor(id_valore)
     ) %>%
-    pivot_wider(names_from = id_valore, values_from = valore)
+    pivot_wider(names_from = id_valore, values_from = valore, values_fn = {
+        min
+    })
 
 ensemble_comunipd <- all_data_reshaped %>% filter(
     folder %in% c(

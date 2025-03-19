@@ -37,6 +37,20 @@ for (y in years) {
         ))
 }
 
+incidence <- rbind(
+    incidence,
+    read.csv(paste0("/Users/tommasobertola/Git/Influcast/sorveglianza/ILI/", "2024-2025", "/italia-2025_10-ILI.csv")) %>%
+        mutate(
+            week = sprintf("%02d", settimana),
+            year_week = paste0(anno, "-", sprintf("%02d", settimana)),
+            orizzonte = factor(year_week,
+                levels = labels_order,
+                labels = labels_order
+            ),
+            epi_year = "2024-2025"
+        )
+)
+
 incidence_current <- read.csv("/Users/tommasobertola/Git/Influcast/sorveglianza/ILI/2024-2025/latest/italia-latest-ILI.csv") %>%
     mutate(
         week = sprintf("%02d", settimana),
@@ -136,7 +150,8 @@ max_inc_2 <- rbind(clean_db, clean_db_special) %>%
     mutate(
         avg_peak = median(week),
         sd_peak = sd(week),
-        outlier = ifelse(week > avg_peak + 0.5 * sd_peak | week < avg_peak - 0.5 * sd_peak, FALSE, TRUE)
+        outlier = ifelse(week > avg_peak + 0.5 * sd_peak | week < avg_peak - 0.5 * sd_peak, FALSE, TRUE),
+        incidenza = as.numeric(sprintf("%.2f", incidenza))
     ) %>%
     as.data.frame()
 
