@@ -86,7 +86,7 @@ graph_obj <- ggplot() +
     geom_point(data = clean_db_special, mapping = aes(x = year_week_2, y = incidenza, shape = epi_year), col = "red", alpha = 0.5, size = 2, show.legend = F) +
     geom_line(data = clean_db_special, mapping = aes(x = year_week_2, y = incidenza, group = epi_year), col = "red", size = 0.7, alpha = 0.5, show.legend = F) +
     scale_color_manual(values = blues_palette) +
-    geom_label(data = incidence_current %>% tail(n = 1), mapping = aes(x = year_week, y = incidenza, label = paste0("Incidence: ", round(incidenza, 2))), col = "black", nudge_x = 0.1, nudge_y = 0.2, hjust = 0, size = 3) +
+    geom_label(data = incidence_current %>% tail(n = 1), mapping = aes(x = year_week, y = incidenza, label = paste0("Incidence: ", round(incidenza, 2))), col = "black", nudge_x = 0.1, nudge_y = 0.2, hjust = 1, size = 3) +
     theme_light() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
     scale_x_discrete(limits = levels(clean_db$year_week_2)) +
