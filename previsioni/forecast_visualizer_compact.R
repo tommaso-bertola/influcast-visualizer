@@ -207,8 +207,8 @@ for (w in weeks) {
         # geom_line(data = baseline, mapping = aes(x = year_week, y = `0.05`, group = folder, color = folder), size = 1, linetype = "dashed") +
         # geom_line(data = baseline, mapping = aes(x = year_week, y = `0.025`, group = folder, color = folder), size = 1, linetype = "dotted") +
         # geom_line(data = baseline, mapping = aes(x = year_week, y = `0.975`, group = folder, color = folder), size = 1, linetype = "dotted") +
-        geom_point(data = incidence, mapping = aes(x = year_week, y = incidenza, color = "Data"), size = 2) +
-        geom_line(data = incidence, mapping = aes(x = year_week, y = incidenza, group = target, color = "Data"), size = 1) +
+        geom_point(data = incidence, mapping = aes(x = year_week, y = incidenza, color = "Dati"), size = 2) +
+        geom_line(data = incidence, mapping = aes(x = year_week, y = incidenza, group = target, color = "Dati"), size = 1) +
         # geom_vline(xintercept = last_incidence$year_week, linetype = "dashed", color = "black") +
         # geom_vline(xintercept = labels_order[which(labels_order == last_incidence$year_week) + 2], linetype = "dotted", color = "black") +
         # geom_hline(yintercept = 5, linetype = "dotted", color = "black", alpha = 0.5) +
@@ -216,8 +216,8 @@ for (w in weeks) {
         scale_fill_paletteer_d("ggsci::alternating_igv", direction = -1) +
         coord_cartesian(ylim = c(0, 20), expand = TRUE) +
         labs(
-            x = "Epiweek",
-            y = "Incidence per 1000 individuals",
+            x = "Settimana epidemica",
+            y = "Incidenza per 1000 individui",
             fill = NULL,
             color = NULL,
             # caption = "Blue curves represent past seasonal epidemic trends.\nRed curves represent epidemic trends outliers of 2009-2010 and 2020-2024 seasons"
@@ -232,12 +232,12 @@ for (w in weeks) {
             ensemble_comuni <- ensemble_comuni +
                 geom_point(
                     data = df,
-                    mapping = aes(x = year_week_2, y = incidenza, col = "Special years"),
+                    mapping = aes(x = year_week_2, y = incidenza, col = "Anni anomali"),
                     alpha = 0.2
                 ) +
                 geom_line(
                     data = df,
-                    mapping = aes(x = year_week_2, y = incidenza, group = 1, col = "Special years"),
+                    mapping = aes(x = year_week_2, y = incidenza, group = 1, col = "Anni anomali"),
                     alpha = 0.2, size = 1
                 )
         } else {
@@ -257,13 +257,13 @@ for (w in weeks) {
     }
 
     ensemble_comuni <- ensemble_comuni +
-        geom_line(aes(x = c("2024-42", "2024-43"), y = c(-10, -20), group = 1, color = "Normal years"), alpha = 0.6, size = 1) +
-        geom_point(aes(x = factor("2024-42"), y = -10, color = "Normal years")) +
+        geom_line(aes(x = c("2024-42", "2024-43"), y = c(-10, -20), group = 1, color = "Anni ordinari"), alpha = 0.6, size = 1) +
+        geom_point(aes(x = factor("2024-42"), y = -10, color = "Anni ordinari")) +
         scale_color_manual(
-            values = c(paletteer_d("nbapalettes::knicks_retro")[c(3, 1)], palette_past_seasons[1], "red")
+            values = c("red", palette_past_seasons[1],  paletteer_d("nbapalettes::knicks_retro")[c(3, 1)])
         )
     ensemble_comuni
-    ggsave(paste0("previsioni/output/test_ensemble_comuni_", last_incidence$year_week, ".png"),
+    ggsave(paste0("previsioni/output/test_ensemble_comuni_manlio_", last_incidence$year_week, ".png"),
         ensemble_comuni,
         width = 10, height = 6, dpi = 300
     )
